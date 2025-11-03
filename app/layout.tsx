@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Disaster Relief Map",
-  description: "Real-time disaster relief coordination",
+  description: "Real-time disaster relief coordination platform for emergency response teams",
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 
 export default function RootLayout({
