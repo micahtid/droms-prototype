@@ -18,56 +18,47 @@ const icon = L.icon({
   shadowSize: [41, 41]
 });
 
-// Custom marker colors based on severity
+// Custom marker colors based on severity - Modern minimal design
 const getMarkerIcon = (severity: string) => {
   let color = '#3b82f6'; // blue
-  let darkColor = '#2563eb'; // darker blue for border
 
   switch (severity) {
     case 'CRITICAL':
       color = '#ef4444'; // red
-      darkColor = '#dc2626';
       break;
     case 'SEVERE':
       color = '#f97316'; // orange
-      darkColor = '#ea580c';
       break;
     case 'MODERATE':
       color = '#eab308'; // yellow
-      darkColor = '#ca8a04';
       break;
     case 'MINOR':
       color = '#3b82f6'; // blue
-      darkColor = '#2563eb';
       break;
   }
 
   const svgIcon = `
-    <svg width="32" height="45" viewBox="0 0 32 45" xmlns="http://www.w3.org/2000/svg">
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <filter id="shadow-${severity}" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+        <filter id="shadow-${severity}">
+          <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.25"/>
         </filter>
       </defs>
-      <!-- Outer pin shape -->
-      <path d="M16 0C9.373 0 4 5.373 4 12c0 8 12 28 12 28s12-20 12-28c0-6.627-5.373-12-12-12z"
-            fill="${darkColor}" filter="url(#shadow-${severity})"/>
-      <!-- Inner pin shape -->
-      <path d="M16 2C10.477 2 6 6.477 6 12c0 7 10 24 10 24s10-17 10-24c0-5.523-4.477-10-10-10z"
-            fill="${color}"/>
-      <!-- White inner circle with pulse effect -->
-      <circle cx="16" cy="12" r="5" fill="white" opacity="0.95"/>
-      <!-- Alert icon dot -->
-      <circle cx="16" cy="12" r="2.5" fill="${darkColor}"/>
+      <!-- Outer circle with shadow -->
+      <circle cx="14" cy="14" r="13" fill="white" filter="url(#shadow-${severity})" stroke="${color}" stroke-width="2"/>
+      <!-- Inner solid circle -->
+      <circle cx="14" cy="14" r="8" fill="${color}"/>
+      <!-- Inner white dot for contrast -->
+      <circle cx="14" cy="14" r="3" fill="white" opacity="0.9"/>
     </svg>
   `;
 
   return L.divIcon({
     html: svgIcon,
     className: 'custom-marker',
-    iconSize: [32, 45],
-    iconAnchor: [16, 45],
-    popupAnchor: [0, -40],
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -14],
   });
 };
 
