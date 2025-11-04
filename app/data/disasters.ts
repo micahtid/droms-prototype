@@ -1,9 +1,21 @@
 export type DisasterSeverity = 'MINOR' | 'MODERATE' | 'SEVERE' | 'CRITICAL';
+export type ContributionStatus = 'Being Sent' | 'Sent' | 'Retracted' | 'Delivered';
+export type ContributionType = 'Volunteers' | 'Resources' | 'Funding';
+
+export interface Contribution {
+  id: string;
+  type: ContributionType;
+  details: string;
+  quantity?: number;
+  date: string; // ISO date string
+  status: ContributionStatus;
+}
 
 export interface ReliefGroup {
   id: string;
   name: string;
   organization: string;
+  contributions: Contribution[];
 }
 
 export interface Disaster {
@@ -34,12 +46,55 @@ export const disasters: Disaster[] = [
       {
         id: 'rg1',
         name: 'St. Paul\'s Church',
-        organization: 'Voice Relief'
+        organization: 'Voice Relief',
+        contributions: [
+          {
+            id: 'c1',
+            type: 'Volunteers',
+            details: '5 volunteers for power restoration support',
+            quantity: 5,
+            date: '2025-11-03T08:30:00Z',
+            status: 'Sent'
+          },
+          {
+            id: 'c2',
+            type: 'Resources',
+            details: 'Emergency Lighting - 15 units',
+            quantity: 15,
+            date: '2025-11-03T09:15:00Z',
+            status: 'Delivered'
+          },
+          {
+            id: 'c3',
+            type: 'Funding',
+            details: 'Emergency fund allocation',
+            date: '2025-11-03T10:00:00Z',
+            status: 'Being Sent'
+          }
+        ]
       },
       {
         id: 'rg2',
         name: 'Lincoln Emergency Response',
-        organization: 'City Services'
+        organization: 'City Services',
+        contributions: [
+          {
+            id: 'c4',
+            type: 'Resources',
+            details: 'Generators - 3 industrial units',
+            quantity: 3,
+            date: '2025-11-03T07:00:00Z',
+            status: 'Delivered'
+          },
+          {
+            id: 'c5',
+            type: 'Volunteers',
+            details: '8 electricians',
+            quantity: 8,
+            date: '2025-11-03T07:30:00Z',
+            status: 'Sent'
+          }
+        ]
       }
     ]
   },
@@ -57,7 +112,25 @@ export const disasters: Disaster[] = [
       {
         id: 'rg3',
         name: 'Red Cross Lincoln',
-        organization: 'American Red Cross'
+        organization: 'American Red Cross',
+        contributions: [
+          {
+            id: 'c6',
+            type: 'Resources',
+            details: 'Sandbags - 500 units',
+            quantity: 500,
+            date: '2025-11-02T14:00:00Z',
+            status: 'Delivered'
+          },
+          {
+            id: 'c7',
+            type: 'Volunteers',
+            details: '12 relief workers',
+            quantity: 12,
+            date: '2025-11-02T15:00:00Z',
+            status: 'Sent'
+          }
+        ]
       }
     ]
   },
@@ -75,12 +148,31 @@ export const disasters: Disaster[] = [
       {
         id: 'rg4',
         name: 'Nebraska Emergency Management',
-        organization: 'State Agency'
+        organization: 'State Agency',
+        contributions: [
+          {
+            id: 'c8',
+            type: 'Resources',
+            details: 'Shelter Supplies - Full emergency kit',
+            date: '2025-11-03T06:00:00Z',
+            status: 'Delivered'
+          }
+        ]
       },
       {
         id: 'rg5',
         name: 'Community Relief Team',
-        organization: 'Local Volunteers'
+        organization: 'Local Volunteers',
+        contributions: [
+          {
+            id: 'c9',
+            type: 'Volunteers',
+            details: '20 volunteers for shelter setup',
+            quantity: 20,
+            date: '2025-11-03T07:00:00Z',
+            status: 'Sent'
+          }
+        ]
       }
     ]
   },
@@ -98,7 +190,17 @@ export const disasters: Disaster[] = [
       {
         id: 'rg6',
         name: 'Lincoln Fire Department',
-        organization: 'Emergency Services'
+        organization: 'Emergency Services',
+        contributions: [
+          {
+            id: 'c10',
+            type: 'Resources',
+            details: 'Gas Detection Equipment - 5 units',
+            quantity: 5,
+            date: '2025-11-01T12:00:00Z',
+            status: 'Delivered'
+          }
+        ]
       }
     ]
   },
@@ -116,7 +218,16 @@ export const disasters: Disaster[] = [
       {
         id: 'rg7',
         name: 'Lincoln Water Department',
-        organization: 'Public Works'
+        organization: 'Public Works',
+        contributions: [
+          {
+            id: 'c11',
+            type: 'Resources',
+            details: 'Repair Equipment - Complete toolkit',
+            date: '2025-11-02T10:00:00Z',
+            status: 'Being Sent'
+          }
+        ]
       }
     ]
   }

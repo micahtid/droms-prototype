@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Disaster } from '../data/disasters';
 import { ArrowLeft, MapPin, Users, AlertTriangle } from 'lucide-react';
+import Breadcrumb from './Breadcrumb';
 import DeploymentDetail from './DeploymentDetail';
 
 interface IssueDetailProps {
@@ -34,6 +35,14 @@ export default function IssueDetail({ disaster, onBack }: IssueDetailProps) {
 
   return (
     <div className="absolute inset-0 bg-white z-[950] overflow-y-auto pb-20">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: 'Map', onClick: onBack },
+          { label: disaster.type }
+        ]}
+      />
+
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
         <div className="flex items-center px-5 py-4">

@@ -1,7 +1,10 @@
 'use client';
 
-import { Disaster } from '../data/disasters';
-import { ArrowLeft, Users, Package, Building2 } from 'lucide-react';
+import { useState } from 'react';
+import { Disaster, ReliefGroup } from '../data/disasters';
+import { ArrowLeft, Users, Package, Building2, ChevronRight } from 'lucide-react';
+import Breadcrumb from './Breadcrumb';
+import OrganizationContributions from './OrganizationContributions';
 
 interface DeploymentDetailProps {
   disaster: Disaster;
@@ -9,8 +12,29 @@ interface DeploymentDetailProps {
 }
 
 export default function DeploymentDetail({ disaster, onBack }: DeploymentDetailProps) {
+  const [selectedOrg, setSelectedOrg] = useState<ReliefGroup | null>(null);
+
+  if (selectedOrg) {
+    return (
+      <OrganizationContributions
+        organization={selectedOrg}
+        disasterType={disaster.type}
+        onBack={() => setSelectedOrg(null)}
+      />
+    );
+  }
+
   return (
     <div className="absolute inset-0 bg-white z-[980] overflow-y-auto pb-20">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: 'Map', onClick: () => {} },
+          { label: disaster.type, onClick: onBack },
+          { label: 'Deployment' }
+        ]}
+      />
+
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
         <div className="flex items-center px-5 py-4">
@@ -30,70 +54,64 @@ export default function DeploymentDetail({ disaster, onBack }: DeploymentDetailP
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide flex items-center gap-2">
             <Building2 size={16} />
-            Groups Working
+            Groups Working ({disaster.reliefGroups.length})
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {disaster.reliefGroups.map((group) => (
-              <div
+              <button
                 key={group.id}
-                className="p-4 bg-gray-50 rounded-xl border border-gray-200"
+                onClick={() => setSelectedOrg(group)}
+                className="w-full p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
               >
-                <p className="font-semibold text-gray-900">{group.name}</p>
-                <p className="text-sm text-gray-600 mt-1">{group.organization}</p>
-              </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 group-hover:text-blue-900">{group.name}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">{group.organization}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {group.contributions.length} contribution{group.contributions.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                </div>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Action Incentives */}
+        {/* Needs */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-            Action Incentives
+            Current Needs
           </h3>
 
-          {/* Volunteers Needed */}
-          <div className="mb-4 p-5 bg-blue-50 rounded-xl border border-blue-200 flex flex-col">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                <Users size={20} className="text-blue-600" />
+          <div className="space-y-4">
+            {/* Volunteers Card */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="mb-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Volunteers</h4>
+                <p className="text-sm text-gray-600">{disaster.volunteersNeeded} needed</p>
               </div>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">Volunteers Needed</p>
-              </div>
+              <button className="w-full px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                Contribute
+              </button>
             </div>
-            <p className="text-2xl font-bold text-blue-600 mb-3">{disaster.volunteersNeeded}</p>
-            <p className="text-sm text-gray-600 mb-4">
-              Your organization can contribute volunteers to help with relief efforts.
-            </p>
-            <button className="w-full mt-auto px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-              Join
-            </button>
-          </div>
 
-          {/* Resources Needed */}
-          <div className="p-5 bg-green-50 rounded-xl border border-green-200 flex flex-col">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-green-100 rounded-lg flex-shrink-0">
-                <Package size={20} className="text-green-600" />
+            {/* Resources Card */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="mb-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Resources</h4>
+                <ul className="space-y-2">
+                  {disaster.resourcesNeeded.map((resource, index) => (
+                    <li key={index} className="text-sm text-gray-600 pl-4 relative before:content-['•'] before:absolute before:left-0">
+                      {resource}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">Resources Needed</p>
-              </div>
+              <button className="w-full px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+                Contribute
+              </button>
             </div>
-            <ul className="space-y-2 mb-4">
-              {disaster.resourcesNeeded.map((resource, index) => (
-                <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                  <div className="w-1.5 h-1.5 bg-green-600 rounded-full flex-shrink-0" />
-                  {resource}
-                </li>
-              ))}
-            </ul>
-            <p className="text-sm text-gray-600 mb-4">
-              Your organization can contribute resources to support the relief operation.
-            </p>
-            <button className="w-full mt-auto px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
-              View
-            </button>
           </div>
         </div>
 

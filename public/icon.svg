@@ -9,23 +9,17 @@
   <!-- Background circle -->
   <circle cx="256" cy="256" r="256" fill="url(#bgGradient)"/>
 
-  <!-- Map pin shape -->
-  <g transform="translate(256, 180)">
+  <!-- Map pin shape - centered -->
+  <g transform="translate(256, 256)">
     <!-- Pin body -->
-    <path d="M 0,-80 C -44,-80 -80,-44 -80,0 C -80,40 0,120 0,120 C 0,120 80,40 80,0 C 80,-44 44,-80 0,-80 Z"
+    <path d="M 0,-100 C -50,-100 -90,-60 -90,0 C -90,50 0,140 0,140 C 0,140 90,50 90,0 C 90,-60 50,-100 0,-100 Z"
           fill="white" opacity="0.95"/>
 
     <!-- Inner circle -->
-    <circle cx="0" cy="0" r="35" fill="#ef4444"/>
+    <circle cx="0" cy="0" r="40" fill="#ef4444"/>
 
     <!-- Alert symbol -->
-    <path d="M 0,-20 L 0,5" stroke="white" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="0" cy="15" r="4" fill="white"/>
+    <path d="M 0,-22 L 0,8" stroke="white" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="0" cy="18" r="5" fill="white"/>
   </g>
-
-  <!-- Location pulse circles -->
-  <circle cx="256" cy="300" r="15" fill="white" opacity="0.3">
-    <animate attributeName="r" from="15" to="35" dur="2s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" from="0.3" to="0" dur="2s" repeatCount="indefinite"/>
-  </circle>
 </svg>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { disasters, Disaster } from '../data/disasters';
@@ -18,8 +18,8 @@ const icon = L.icon({
   shadowSize: [41, 41]
 });
 
-// Custom marker colors based on severity - Modern minimal design
-const getMarkerIcon = (severity: string) => {
+// Custom marker colors based on severity - Modern minimal design with zoom scaling
+const getMarkerIcon = (severity: string, zoom: number = 13) => {
   let color = '#3b82f6'; // blue
 
   switch (severity) {
@@ -37,34 +37,63 @@ const getMarkerIcon = (severity: string) => {
       break;
   }
 
+  // Scale based on zoom level (bigger icons, scale down as you zoom in)
+  const baseSize = 40;
+  const minSize = 32;
+  const maxSize = 48;
+
+  // As zoom increases, size decreases slightly
+  let size = baseSize - (zoom - 13) * 1.5;
+  size = Math.max(minSize, Math.min(maxSize, size));
+
   const svgIcon = `
-    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+    <svg width="${size}" height="${size}" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="shadow-${severity}">
-          <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.25"/>
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
         </filter>
       </defs>
       <!-- Outer circle with shadow -->
-      <circle cx="14" cy="14" r="13" fill="white" filter="url(#shadow-${severity})" stroke="${color}" stroke-width="2"/>
+      <circle cx="20" cy="20" r="18" fill="white" filter="url(#shadow-${severity})" stroke="${color}" stroke-width="3"/>
       <!-- Inner solid circle -->
-      <circle cx="14" cy="14" r="8" fill="${color}"/>
+      <circle cx="20" cy="20" r="12" fill="${color}"/>
       <!-- Inner white dot for contrast -->
-      <circle cx="14" cy="14" r="3" fill="white" opacity="0.9"/>
+      <circle cx="20" cy="20" r="5" fill="white" opacity="0.9"/>
     </svg>
   `;
 
   return L.divIcon({
     html: svgIcon,
     className: 'custom-marker',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -14],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
   });
 };
+
+// Component to handle zoom changes
+function MapZoomHandler({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const handleZoom = () => {
+      onZoomChange(map.getZoom());
+    };
+
+    map.on('zoomend', handleZoom);
+
+    return () => {
+      map.off('zoomend', handleZoom);
+    };
+  }, [map, onZoomChange]);
+
+  return null;
+}
 
 export default function DisasterMap() {
   const [selectedDisaster, setSelectedDisaster] = useState<Disaster | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(13);
 
   useEffect(() => {
     setMounted(true);
@@ -92,11 +121,13 @@ export default function DisasterMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        <MapZoomHandler onZoomChange={setCurrentZoom} />
+
         {disasters.map((disaster) => (
           <Marker
             key={disaster.id}
             position={disaster.coordinates}
-            icon={getMarkerIcon(disaster.severity)}
+            icon={getMarkerIcon(disaster.severity, currentZoom)}
             eventHandlers={{
               click: () => setSelectedDisaster(disaster),
             }}
