@@ -15,8 +15,8 @@ const DisasterMap = dynamic(() => import('./components/DisasterMap'), {
 
 export default function Home() {
   return (
-    <div className="w-full h-full relative overflow-hidden">
-      <div className="absolute inset-0 z-0">
+    <div className="w-full h-full relative flex flex-col">
+      <div className="flex-1 relative z-0 overflow-hidden">
         <DisasterMap />
       </div>
       <BottomNav />

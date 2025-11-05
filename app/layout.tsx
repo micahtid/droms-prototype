@@ -27,12 +27,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
       >
         {/* Mobile-constrained viewport with black bars on desktop */}
-        <div className="min-h-screen w-full flex items-center justify-center bg-black">
-          <div className="w-full max-w-[430px] h-screen bg-white relative shadow-2xl">
+        <div className="min-h-dvh w-full flex items-center justify-center bg-black">
+          <div className="w-full max-w-[430px] h-dvh bg-white relative shadow-2xl overflow-hidden">
             {children}
           </div>
         </div>

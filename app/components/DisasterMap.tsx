@@ -136,6 +136,17 @@ export default function DisasterMap() {
         ))}
       </MapContainer>
 
+      {/* Add Disaster Button */}
+      <button
+        className="absolute top-4 right-4 z-[800] w-10 h-10 bg-white text-gray-700 rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation border border-gray-200"
+        aria-label="Add new disaster point"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
       {selectedDisaster && (
         <PinTooltip
           disaster={selectedDisaster}

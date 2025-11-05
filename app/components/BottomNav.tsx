@@ -4,7 +4,7 @@ import { Home, Map, Menu } from 'lucide-react';
 
 export default function BottomNav() {
   return (
-    <nav className="absolute bottom-0 left-0 right-0 h-20 bg-white border-t border-gray-300 flex items-center justify-around px-8 z-[1000] shadow-lg">
+    <nav className="relative w-full h-20 bg-white border-t border-gray-300 flex items-center justify-around px-8 z-[1000] shadow-lg flex-shrink-0">
       <button
         disabled
         className="flex flex-col items-center justify-center gap-1.5 text-gray-400 cursor-not-allowed min-w-[60px]"

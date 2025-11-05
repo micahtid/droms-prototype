@@ -9,6 +9,7 @@ import DeploymentDetail from './DeploymentDetail';
 interface IssueDetailProps {
   disaster: Disaster;
   onBack: () => void;
+  onBackToMap?: () => void;
 }
 
 const getSeverityColor = (severity: string) => {
@@ -26,84 +27,86 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-export default function IssueDetail({ disaster, onBack }: IssueDetailProps) {
+export default function IssueDetail({ disaster, onBack, onBackToMap }: IssueDetailProps) {
   const [showDeployment, setShowDeployment] = useState(false);
 
   if (showDeployment) {
-    return <DeploymentDetail disaster={disaster} onBack={() => setShowDeployment(false)} />;
+    return <DeploymentDetail disaster={disaster} onBack={() => setShowDeployment(false)} onBackToMap={onBackToMap || onBack} />;
   }
 
   return (
-    <div className="absolute inset-0 bg-white z-[950] overflow-y-auto pb-20">
-      {/* Breadcrumb */}
-      <Breadcrumb
-        items={[
-          { label: 'Map', onClick: onBack },
-          { label: disaster.type }
-        ]}
-      />
+    <div className="fixed inset-0 bg-white z-[950] overflow-y-auto overscroll-contain max-w-[430px] mx-auto">
+      <div className="min-h-full pb-24">
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[
+            { label: 'Map', onClick: onBackToMap || onBack },
+            { label: disaster.type }
+          ]}
+        />
 
-      {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-        <div className="flex items-center px-5 py-4">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
+          <div className="flex items-center px-5 py-4">
+            <button
+              onClick={onBack}
+              className="mr-3 p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+            >
+              <ArrowLeft size={20} className="text-gray-700" />
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">Issue Details</h1>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="px-5 py-6">
+          {/* Title & Severity */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">{disaster.type}</h2>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-medium text-sm ${getSeverityColor(disaster.severity)}`}>
+              <AlertTriangle size={16} />
+              Severity: {disaster.severity}
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="mb-6">
+            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+              <MapPin size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-700">Location</p>
+                <p className="text-base text-gray-900 mt-1">{disaster.location}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Estimated Impact */}
+          <div className="mb-6">
+            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+              <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-700">Estimated Impact</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {disaster.estimatedImpact.toLocaleString()} people
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mb-8">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Description</h3>
+            <p className="text-base text-gray-700 leading-relaxed">{disaster.shortDescription}</p>
+          </div>
+
+          {/* View Deployment Button */}
           <button
-            onClick={onBack}
-            className="mr-3 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            onClick={() => setShowDeployment(true)}
+            className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors text-base touch-manipulation"
           >
-            <ArrowLeft size={20} className="text-gray-700" />
+            View Deployment
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Issue Details</h1>
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="px-5 py-6">
-        {/* Title & Severity */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">{disaster.type}</h2>
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-medium text-sm ${getSeverityColor(disaster.severity)}`}>
-            <AlertTriangle size={16} />
-            Severity: {disaster.severity}
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="mb-6">
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-            <MapPin size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-gray-700">Location</p>
-              <p className="text-base text-gray-900 mt-1">{disaster.location}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Estimated Impact */}
-        <div className="mb-6">
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-            <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-gray-700">Estimated Impact</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {disaster.estimatedImpact.toLocaleString()} people
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Description */}
-        <div className="mb-8">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Description</h3>
-          <p className="text-base text-gray-700 leading-relaxed">{disaster.shortDescription}</p>
-        </div>
-
-        {/* View Deployment Button */}
-        <button
-          onClick={() => setShowDeployment(true)}
-          className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors text-base"
-        >
-          View Deployment
-        </button>
       </div>
     </div>
   );

@@ -14,12 +14,12 @@ export default function PinTooltip({ disaster, onClose }: PinTooltipProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (isExpanded) {
-    return <IssueDetail disaster={disaster} onBack={() => setIsExpanded(false)} />;
+    return <IssueDetail disaster={disaster} onBack={() => setIsExpanded(false)} onBackToMap={onClose} />;
   }
 
   return (
-    <div className="absolute bottom-20 left-0 right-0 z-[900] animate-slide-up">
-      <div className="mx-4 mb-4 bg-white rounded-2xl shadow-xl border border-gray-200">
+    <div className="fixed bottom-20 left-0 right-0 z-[900] animate-slide-up pointer-events-none max-w-[430px] mx-auto">
+      <div className="mx-4 mb-4 bg-white rounded-2xl shadow-xl border border-gray-200 pointer-events-auto">
         {/* Handle bar */}
         <div className="flex justify-center pt-3">
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
@@ -34,7 +34,7 @@ export default function PinTooltip({ disaster, onClose }: PinTooltipProps) {
             </div>
             <button
               onClick={onClose}
-              className="ml-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="ml-3 p-1 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
             >
               <X size={20} className="text-gray-500" />
             </button>
@@ -43,7 +43,7 @@ export default function PinTooltip({ disaster, onClose }: PinTooltipProps) {
           {/* Expand button */}
           <button
             onClick={() => setIsExpanded(true)}
-            className="w-full mt-4 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            className="w-full mt-4 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors flex items-center justify-center gap-2 touch-manipulation"
           >
             View Details
             <ChevronUp size={18} />
