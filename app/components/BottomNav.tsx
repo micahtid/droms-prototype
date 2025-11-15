@@ -1,31 +1,37 @@
 'use client';
 
-import { Home, Map, Menu } from 'lucide-react';
+import { Map, List } from 'lucide-react';
 
-export default function BottomNav() {
+interface BottomNavProps {
+  activeView: 'map' | 'list';
+  onViewChange: (view: 'map' | 'list') => void;
+}
+
+export default function BottomNav({ activeView, onViewChange }: BottomNavProps) {
   return (
     <nav className="relative w-full h-20 bg-white border-t border-gray-300 flex items-center justify-around px-8 z-[1000] shadow-lg flex-shrink-0">
       <button
-        disabled
-        className="flex flex-col items-center justify-center gap-1.5 text-gray-400 cursor-not-allowed min-w-[60px]"
+        onClick={() => onViewChange('map')}
+        className={`flex flex-col items-center justify-center gap-1.5 min-w-[60px] transition-colors ${
+          activeView === 'map'
+            ? 'text-blue-600'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
       >
-        <Home size={26} strokeWidth={1.5} />
-        <span className="text-xs font-medium">Home</span>
+        <Map size={26} strokeWidth={activeView === 'map' ? 2 : 1.5} />
+        <span className={`text-xs ${activeView === 'map' ? 'font-semibold' : 'font-medium'}`}>Map</span>
       </button>
 
       <button
-        className="flex flex-col items-center justify-center gap-1.5 text-blue-600 min-w-[60px]"
+        onClick={() => onViewChange('list')}
+        className={`flex flex-col items-center justify-center gap-1.5 min-w-[60px] transition-colors ${
+          activeView === 'list'
+            ? 'text-blue-600'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
       >
-        <Map size={26} strokeWidth={2} />
-        <span className="text-xs font-semibold">Map</span>
-      </button>
-
-      <button
-        disabled
-        className="flex flex-col items-center justify-center gap-1.5 text-gray-400 cursor-not-allowed min-w-[60px]"
-      >
-        <Menu size={26} strokeWidth={1.5} />
-        <span className="text-xs font-medium">Menu</span>
+        <List size={26} strokeWidth={activeView === 'list' ? 2 : 1.5} />
+        <span className={`text-xs ${activeView === 'list' ? 'font-semibold' : 'font-medium'}`}>List</span>
       </button>
     </nav>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Disaster } from '../data/disasters';
+import { Disaster, disasters } from '../data/disasters';
 import { ArrowLeft, MapPin, Users, AlertTriangle } from 'lucide-react';
 import Breadcrumb from './Breadcrumb';
 import DeploymentDetail from './DeploymentDetail';
@@ -10,6 +10,8 @@ interface IssueDetailProps {
   disaster: Disaster;
   onBack: () => void;
   onBackToMap?: () => void;
+  onVolunteerContribution: (disasterId: string, volunteerType: string, quantity: number, maxPositions: number) => void;
+  onResourceContribution: (disasterId: string, resourceIndex: number, resourceName: string, quantity: number, maxQuantity: number) => void;
 }
 
 const getSeverityColor = (severity: string) => {
@@ -27,11 +29,24 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-export default function IssueDetail({ disaster, onBack, onBackToMap }: IssueDetailProps) {
+export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteerContribution, onResourceContribution }: IssueDetailProps) {
   const [showDeployment, setShowDeployment] = useState(false);
 
+  // Find parent disaster if this is a sub-disaster
+  const parentDisaster = disaster.parentId
+    ? disasters.find(d => d.id === disaster.parentId)
+    : null;
+
   if (showDeployment) {
-    return <DeploymentDetail disaster={disaster} onBack={() => setShowDeployment(false)} onBackToMap={onBackToMap || onBack} />;
+    return (
+      <DeploymentDetail
+        disaster={disaster}
+        onBack={() => setShowDeployment(false)}
+        onBackToMap={onBackToMap || onBack}
+        onVolunteerContribution={onVolunteerContribution}
+        onResourceContribution={onResourceContribution}
+      />
+    );
   }
 
   return (
@@ -60,13 +75,28 @@ export default function IssueDetail({ disaster, onBack, onBackToMap }: IssueDeta
 
         {/* Content */}
         <div className="px-5 py-6">
-          {/* Title & Severity */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">{disaster.type}</h2>
+          {/* Severity */}
+          <div className="mb-4">
             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-medium text-sm ${getSeverityColor(disaster.severity)}`}>
               <AlertTriangle size={16} />
               Severity: {disaster.severity}
             </div>
+          </div>
+
+          {/* Parent Disaster Context */}
+          {parentDisaster && (
+            <div className="mb-4 inline-block">
+              <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
+                <p className="text-sm text-amber-800">
+                  Part of Larger {parentDisaster.type.replace(/^Severe\s+|^Major\s+/, '')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Title */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">{disaster.type}</h2>
           </div>
 
           {/* Location */}
@@ -82,14 +112,160 @@ export default function IssueDetail({ disaster, onBack, onBackToMap }: IssueDeta
 
           {/* Estimated Impact */}
           <div className="mb-6">
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-              <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-gray-700">Estimated Impact</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {disaster.estimatedImpact.toLocaleString()} people
-                </p>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Estimated Impact</h3>
+            <div className="space-y-3">
+              {/* People Affected */}
+              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+                <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">People Affected</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {disaster.estimatedImpact.toLocaleString()}
+                  </p>
+                </div>
               </div>
+
+              {/* Impact Breakdown */}
+              {disaster.impactBreakdown && (
+                <div className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div className="space-y-4">
+                    {/* Structural Damage */}
+                    {disaster.impactBreakdown.structuralDamage && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Structural Damage</p>
+                        <table className="w-full border-collapse">
+                          <tbody>
+                            {disaster.impactBreakdown.structuralDamage.homesDestroyed !== undefined && (
+                              <tr className="border-b border-gray-200">
+                                <td className="py-2 pr-4 text-sm text-gray-600">Homes Destroyed</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.structuralDamage.homesDestroyed}</td>
+                              </tr>
+                            )}
+                            {disaster.impactBreakdown.structuralDamage.homesPartiallyDamaged !== undefined && (
+                              <tr className="border-b border-gray-200">
+                                <td className="py-2 pr-4 text-sm text-gray-600">Homes Damaged</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.structuralDamage.homesPartiallyDamaged}</td>
+                              </tr>
+                            )}
+                            {disaster.impactBreakdown.structuralDamage.businessesAffected !== undefined && (
+                              <tr>
+                                <td className="py-2 pr-4 text-sm text-gray-600">Businesses Affected</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.structuralDamage.businessesAffected}</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* Casualties */}
+                    {disaster.impactBreakdown.casualties && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Casualties</p>
+                        <table className="w-full border-collapse">
+                          <tbody>
+                            {disaster.impactBreakdown.casualties.injuries !== undefined && (
+                              <tr className="border-b border-gray-200">
+                                <td className="py-2 pr-4 text-sm text-gray-600">Injuries</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.casualties.injuries}</td>
+                              </tr>
+                            )}
+                            {disaster.impactBreakdown.casualties.fatalities !== undefined && (
+                              <tr className="border-b border-gray-200">
+                                <td className="py-2 pr-4 text-sm text-gray-600">Fatalities</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.casualties.fatalities}</td>
+                              </tr>
+                            )}
+                            {disaster.impactBreakdown.casualties.missing !== undefined && (
+                              <tr>
+                                <td className="py-2 pr-4 text-sm text-gray-600">Missing</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.casualties.missing}</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* Utilities */}
+                    {disaster.impactBreakdown.utilities && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Utilities Disrupted</p>
+                        <div className="space-y-2">
+                          {disaster.impactBreakdown.utilities.powerOutages !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Power Outages</span>
+                              <span className="text-sm font-bold text-gray-900">{disaster.impactBreakdown.utilities.powerOutages.toLocaleString()}</span>
+                            </div>
+                          )}
+                          {disaster.impactBreakdown.utilities.waterServiceDisrupted !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Water Service Disrupted</span>
+                              <span className="text-sm font-bold text-gray-900">{disaster.impactBreakdown.utilities.waterServiceDisrupted.toLocaleString()}</span>
+                            </div>
+                          )}
+                          {disaster.impactBreakdown.utilities.gasLeaksReported !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Gas Leaks Reported</span>
+                              <span className="text-sm font-bold text-gray-900">{disaster.impactBreakdown.utilities.gasLeaksReported}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Economic Impact */}
+                    {disaster.impactBreakdown.economicImpact && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Economic Impact</p>
+                        <div className="space-y-2">
+                          {disaster.impactBreakdown.economicImpact.estimatedPropertyLoss && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Property Loss</span>
+                              <span className="text-sm font-bold text-red-600">{disaster.impactBreakdown.economicImpact.estimatedPropertyLoss}</span>
+                            </div>
+                          )}
+                          {disaster.impactBreakdown.economicImpact.businessInterruption && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">Business Interruption</span>
+                              <span className="text-sm font-bold text-orange-600">{disaster.impactBreakdown.economicImpact.businessInterruption}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Immediate Needs */}
+                    {disaster.impactBreakdown.immediateNeeds && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Immediate Needs</p>
+                        <table className="w-full border-collapse">
+                          <tbody>
+                            {disaster.impactBreakdown.immediateNeeds.evacuation !== undefined && (
+                              <tr className="border-b border-gray-200">
+                                <td className="py-2 pr-4 text-sm text-gray-600">Evacuation</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.immediateNeeds.evacuation}</td>
+                              </tr>
+                            )}
+                            {disaster.impactBreakdown.immediateNeeds.emergencyShelter !== undefined && (
+                              <tr className="border-b border-gray-200">
+                                <td className="py-2 pr-4 text-sm text-gray-600">Emergency Shelter</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.immediateNeeds.emergencyShelter}</td>
+                              </tr>
+                            )}
+                            {disaster.impactBreakdown.immediateNeeds.medicalAttention !== undefined && (
+                              <tr>
+                                <td className="py-2 pr-4 text-sm text-gray-600">Medical Attention</td>
+                                <td className="py-2 text-sm font-bold text-gray-900 text-right">{disaster.impactBreakdown.immediateNeeds.medicalAttention}</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

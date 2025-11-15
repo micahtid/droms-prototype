@@ -1,11 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { disasters, Disaster } from '../data/disasters';
+import { Disaster } from '../data/disasters';
 import PinTooltip from './PinTooltip';
+
+interface DisasterMapProps {
+  disasters: Disaster[];
+  onVolunteerContribution: (disasterId: string, volunteerType: string, quantity: number, maxPositions: number) => void;
+  onResourceContribution: (disasterId: string, resourceIndex: number, resourceName: string, quantity: number, maxQuantity: number) => void;
+}
 
 // Fix for default marker icons in react-leaflet
 const icon = L.icon({
@@ -90,7 +96,7 @@ function MapZoomHandler({ onZoomChange }: { onZoomChange: (zoom: number) => void
   return null;
 }
 
-export default function DisasterMap() {
+export default function DisasterMap({ disasters, onVolunteerContribution, onResourceContribution }: DisasterMapProps) {
   const [selectedDisaster, setSelectedDisaster] = useState<Disaster | null>(null);
   const [mounted, setMounted] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(13);
@@ -106,6 +112,26 @@ export default function DisasterMap() {
       </div>
     );
   }
+
+  // Helper function to get circle color based on severity
+  const getCircleColor = (severity: string) => {
+    switch (severity) {
+      case 'CRITICAL':
+        return '#ef4444'; // red
+      case 'SEVERE':
+        return '#f97316'; // orange
+      case 'MODERATE':
+        return '#eab308'; // yellow
+      case 'MINOR':
+        return '#3b82f6'; // blue
+      default:
+        return '#3b82f6';
+    }
+  };
+
+  // Filter disasters to only show non-parent disasters (the actual pinpoints)
+  const visibleDisasters = disasters.filter(d => !d.isParent);
+  const parentDisasters = disasters.filter(d => d.isParent);
 
   return (
     <div className="w-full h-full relative z-0">
@@ -123,7 +149,26 @@ export default function DisasterMap() {
 
         <MapZoomHandler onZoomChange={setCurrentZoom} />
 
-        {disasters.map((disaster) => (
+        {/* Render circles for parent disasters */}
+        {parentDisasters.map((disaster) => (
+          disaster.areaRadius && (
+            <Circle
+              key={`circle-${disaster.id}`}
+              center={disaster.coordinates}
+              radius={disaster.areaRadius}
+              pathOptions={{
+                color: getCircleColor(disaster.severity),
+                fillColor: getCircleColor(disaster.severity),
+                fillOpacity: 0.1,
+                weight: 2,
+                opacity: 0.6
+              }}
+            />
+          )
+        ))}
+
+        {/* Render markers for actual disaster pinpoints (non-parent disasters) */}
+        {visibleDisasters.map((disaster) => (
           <Marker
             key={disaster.id}
             position={disaster.coordinates}
@@ -151,6 +196,8 @@ export default function DisasterMap() {
         <PinTooltip
           disaster={selectedDisaster}
           onClose={() => setSelectedDisaster(null)}
+          onVolunteerContribution={onVolunteerContribution}
+          onResourceContribution={onResourceContribution}
         />
       )}
     </div>
