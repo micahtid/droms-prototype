@@ -21,6 +21,8 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState<'map' | 'list'>('map');
   const [disasters, setDisasters] = useState<Disaster[]>(initialDisasters);
+  const [disasterTypeFilter, setDisasterTypeFilter] = useState<string[]>([]);
+  const [severityFilter, setSeverityFilter] = useState<string[]>([]);
 
   // Function to handle volunteer contributions
   const handleVolunteerContribution = (
@@ -154,12 +156,20 @@ export default function Home() {
             disasters={disasters}
             onVolunteerContribution={handleVolunteerContribution}
             onResourceContribution={handleResourceContribution}
+            disasterTypeFilter={disasterTypeFilter}
+            onDisasterTypeFilterChange={setDisasterTypeFilter}
+            severityFilter={severityFilter}
+            onSeverityFilterChange={setSeverityFilter}
           />
         ) : (
           <ListView
             disasters={disasters}
             onVolunteerContribution={handleVolunteerContribution}
             onResourceContribution={handleResourceContribution}
+            disasterTypeFilter={disasterTypeFilter}
+            onDisasterTypeFilterChange={setDisasterTypeFilter}
+            severityFilter={severityFilter}
+            onSeverityFilterChange={setSeverityFilter}
           />
         )}
       </div>

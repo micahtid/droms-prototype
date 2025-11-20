@@ -63,6 +63,10 @@ export interface Disaster {
   parentId?: string; // For sub-disasters within a complex disaster
   areaRadius?: number; // For parent disasters - radius in meters
   isParent?: boolean; // True if this disaster has sub-disasters
+  polygonCoordinates?: [number, number][]; // For complex non-radial disaster zones
+  lastUpdated: string; // ISO date string - when the disaster data was last updated
+  manuallyReviewed: boolean; // Whether an admin has manually reviewed this disaster
+  lastReviewedAt?: string; // ISO date string - when the disaster was last reviewed
 }
 
 export const disasters: Disaster[] = [
@@ -106,7 +110,19 @@ export const disasters: Disaster[] = [
     resourcesNeeded: [],
     reliefGroups: [],
     isParent: true,
-    areaRadius: 1000 // 1km radius
+    areaRadius: 1000, // 1km radius
+    polygonCoordinates: [
+      [40.7920, -96.7180],
+      [40.7920, -96.7130],
+      [40.7870, -96.7130],
+      [40.7870, -96.7090],
+      [40.7840, -96.7090],
+      [40.7840, -96.7180],
+      [40.7920, -96.7180]
+    ],
+    lastUpdated: '2025-11-20T08:30:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T08:15:00Z'
   },
   {
     id: 'tornado-1',
@@ -194,7 +210,10 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-20T07:45:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T07:30:00Z'
   },
   {
     id: 'tornado-2',
@@ -247,7 +266,10 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-20T09:20:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T09:00:00Z'
   },
   {
     id: 'tornado-3',
@@ -302,7 +324,10 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-20T06:15:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T06:00:00Z'
   },
   {
     id: 'tornado-4',
@@ -355,7 +380,9 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-20T10:30:00Z',
+    manuallyReviewed: false
   },
 
   // COMPLEX DISASTER 2: Flash Flooding Event (Parent + 3 Sub-disasters)
@@ -393,7 +420,19 @@ export const disasters: Disaster[] = [
     resourcesNeeded: [],
     reliefGroups: [],
     isParent: true,
-    areaRadius: 800 // 800m radius
+    areaRadius: 800, // 800m radius
+    polygonCoordinates: [
+      [40.8280, -96.6875],
+      [40.8280, -96.6830],
+      [40.8235, -96.6830],
+      [40.8235, -96.6770],
+      [40.8210, -96.6770],
+      [40.8210, -96.6875],
+      [40.8280, -96.6875]
+    ],
+    lastUpdated: '2025-11-20T05:45:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T05:30:00Z'
   },
   {
     id: 'flood-1',
@@ -449,7 +488,10 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-20T04:20:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T04:00:00Z'
   },
   {
     id: 'flood-2',
@@ -495,7 +537,9 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-19T16:00:00Z',
+    manuallyReviewed: false
   },
   {
     id: 'flood-3',
@@ -548,7 +592,10 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-20T03:10:00Z',
+    manuallyReviewed: true,
+    lastReviewedAt: '2025-11-20T03:00:00Z'
   },
 
   // STANDALONE DISASTER 1: Gas Leak
@@ -603,7 +650,9 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-19T12:00:00Z',
+    manuallyReviewed: false
   },
 
   // STANDALONE DISASTER 2: Water Main Break
@@ -655,6 +704,8 @@ export const disasters: Disaster[] = [
           }
         ]
       }
-    ]
+    ],
+    lastUpdated: '2025-11-19T10:00:00Z',
+    manuallyReviewed: false
   }
 ];

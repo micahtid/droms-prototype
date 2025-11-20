@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Disaster, disasters } from '../data/disasters';
-import { ArrowLeft, MapPin, Users, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, AlertTriangle, ChevronDown, Clock, Copy, Check } from 'lucide-react';
 import Breadcrumb from './Breadcrumb';
 import DeploymentDetail from './DeploymentDetail';
 
@@ -29,13 +29,85 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
+// Get city and state from coordinates
+const getCityState = (coordinates: [number, number]): string => {
+  const [lat, lng] = coordinates;
+  // Lincoln, NE area (around 40.8, -96.7)
+  if (lat >= 40.7 && lat <= 40.9 && lng >= -96.8 && lng <= -96.6) {
+    return 'Lincoln, NE';
+  }
+  // Omaha, NE area (around 41.25, -95.93)
+  if (lat >= 41.2 && lat <= 41.3 && lng >= -96.0 && lng <= -95.8) {
+    return 'Omaha, NE';
+  }
+  // Beatrice, NE area (around 40.58, -96.73)
+  if (lat >= 40.5 && lat <= 40.6 && lng >= -96.8 && lng <= -96.6) {
+    return 'Beatrice, NE';
+  }
+  return 'Nebraska';
+};
+
 export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteerContribution, onResourceContribution }: IssueDetailProps) {
   const [showDeployment, setShowDeployment] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['impact']));
+  const [copied, setCopied] = useState(false);
 
   // Find parent disaster if this is a sub-disaster
   const parentDisaster = disaster.parentId
     ? disasters.find(d => d.id === disaster.parentId)
     : null;
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
+  const generateShareableInfo = () => {
+    // Generate shareable disaster information
+    const info = `
+DISASTER INFORMATION
+
+Type: ${disaster.type}
+Location: ${disaster.location}
+Severity: ${disaster.severity}
+People Affected: ${disaster.estimatedImpact.toLocaleString()}
+
+Description: ${disaster.shortDescription}
+
+Volunteers Needed: ${disaster.volunteersNeeded}
+Resources Needed:
+${disaster.resourcesNeeded.map(r => `- ${r}`).join('\n')}
+
+Last Updated: ${new Date(disaster.lastUpdated).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}
+
+View more details: ${typeof window !== 'undefined' ? window.location.origin : ''}/share/${disaster.id}
+    `.trim();
+    return info;
+  };
+
+  const copyToClipboard = async () => {
+    const info = generateShareableInfo();
+    try {
+      await navigator.clipboard.writeText(info);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   if (showDeployment) {
     return (
@@ -75,28 +147,47 @@ export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteer
 
         {/* Content */}
         <div className="px-5 py-6">
-          {/* Severity */}
+          {/* Title */}
           <div className="mb-4">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-medium text-sm ${getSeverityColor(disaster.severity)}`}>
-              <AlertTriangle size={16} />
-              Severity: {disaster.severity}
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900">{disaster.type}</h2>
           </div>
 
           {/* Parent Disaster Context */}
           {parentDisaster && (
             <div className="mb-4 inline-block">
-              <div className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
-                <p className="text-sm text-amber-800">
-                  Part of Larger {parentDisaster.type.replace(/^Severe\s+|^Major\s+/, '')}
-                </p>
+              <div
+                className="px-3 py-1.5 rounded-md text-sm font-semibold backdrop-blur-sm border"
+                style={{
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  color: '#3b82f6',
+                  borderColor: 'rgba(59, 130, 246, 0.3)',
+                }}
+              >
+                Part of {parentDisaster.type}
               </div>
             </div>
           )}
 
-          {/* Title */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">{disaster.type}</h2>
+          {/* Key Info Cards */}
+          <div className="mb-6 grid grid-cols-2 gap-3">
+            {/* Severity */}
+            <div className={`p-3 rounded-lg border ${getSeverityColor(disaster.severity)}`}>
+              <p className="text-xs font-medium uppercase tracking-wide mb-1">Severity</p>
+              <p className="text-lg font-bold">{disaster.severity}</p>
+            </div>
+
+            {/* Last Updated */}
+            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Last Updated</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {new Date(disaster.lastUpdated).toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
           </div>
 
           {/* Location */}
@@ -105,28 +196,43 @@ export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteer
               <MapPin size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-gray-700">Location</p>
-                <p className="text-base text-gray-900 mt-1">{disaster.location}</p>
+                <p className="text-base text-gray-900 mt-1">{getCityState(disaster.coordinates)}</p>
+                <p className="text-sm text-gray-600 mt-0.5">{disaster.location}</p>
               </div>
             </div>
           </div>
 
-          {/* Estimated Impact */}
+          {/* Estimated Impact - Collapsible */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Estimated Impact</h3>
-            <div className="space-y-3">
-              {/* People Affected */}
-              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700">People Affected</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {disaster.estimatedImpact.toLocaleString()}
-                  </p>
-                </div>
-              </div>
+            <button
+              onClick={() => toggleSection('impact')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors touch-manipulation"
+            >
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+                <Users size={18} />
+                Estimated Impact
+              </h3>
+              <ChevronDown
+                size={20}
+                className={`text-gray-600 transition-transform ${expandedSections.has('impact') ? 'rotate-180' : ''}`}
+              />
+            </button>
 
-              {/* Impact Breakdown */}
-              {disaster.impactBreakdown && (
+            {expandedSections.has('impact') && (
+              <div className="space-y-3 mt-3">
+                {/* People Affected */}
+                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+                  <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">People Affected</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {disaster.estimatedImpact.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Impact Breakdown */}
+                {disaster.impactBreakdown && (
                 <div className="bg-white border border-gray-200 rounded-xl p-4">
                   <div className="space-y-4">
                     {/* Structural Damage */}
@@ -266,7 +372,8 @@ export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteer
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -275,13 +382,31 @@ export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteer
             <p className="text-base text-gray-700 leading-relaxed">{disaster.shortDescription}</p>
           </div>
 
-          {/* View Deployment Button */}
-          <button
-            onClick={() => setShowDeployment(true)}
-            className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors text-base touch-manipulation"
-          >
-            View Deployment
-          </button>
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <button
+              onClick={() => setShowDeployment(true)}
+              className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors text-base touch-manipulation"
+            >
+              View Deployment
+            </button>
+            <button
+              onClick={copyToClipboard}
+              className="w-full py-4 bg-white border-2 border-gray-300 text-gray-900 font-semibold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition-colors text-base touch-manipulation flex items-center justify-center gap-2"
+            >
+              {copied ? (
+                <>
+                  <Check size={20} className="text-green-600" />
+                  <span>Copied to Clipboard!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={20} />
+                  <span>Share Disaster Info</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Disaster, ReliefGroup } from '../data/disasters';
-import { ArrowLeft, Users, Package, Building2, ChevronRight, X, MapPin, Clock, CheckCircle, Truck, Phone } from 'lucide-react';
+import { ArrowLeft, Users, Package, Building2, ChevronRight, X, MapPin, Clock, CheckCircle, Truck, Phone, ChevronDown } from 'lucide-react';
 import Breadcrumb from './Breadcrumb';
 import OrganizationContributions from './OrganizationContributions';
 
@@ -41,6 +41,19 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [volunteerQuantities, setVolunteerQuantities] = useState<{ [key: string]: number }>({});
   const [resourceQuantities, setResourceQuantities] = useState<{ [key: string]: number }>({});
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['needs']));
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
 
   // Handlers for sending contributions
   const handleSendVolunteers = (volunteerType: string, maxPositions: number, key: string) => {
@@ -99,39 +112,77 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
 
         {/* Content */}
         <div className="px-5 py-6">
-          {/* Relief Groups Working */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide flex items-center gap-2">
-              <Building2 size={16} />
-              Groups Working ({disaster.reliefGroups.length})
-            </h3>
-            <div className="space-y-2">
-              {disaster.reliefGroups.map((group) => (
-                <button
-                  key={group.id}
-                  onClick={() => setSelectedOrg(group)}
-                  className="w-full p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100 transition-all text-left group touch-manipulation"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 group-hover:text-blue-900 truncate">{group.name}</p>
-                      <p className="text-sm text-gray-600 mt-0.5 truncate">{group.organization}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {group.contributions.length} contribution{group.contributions.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* Last Updated */}
+          <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Last Updated</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {new Date(disaster.lastUpdated).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
           </div>
 
-          {/* Needs */}
+          {/* Relief Groups Working - Collapsible */}
+          <div className="mb-8">
+            <button
+              onClick={() => toggleSection('groups')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors touch-manipulation"
+            >
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+                <Building2 size={18} />
+                Groups Working ({disaster.reliefGroups.length})
+              </h3>
+              <ChevronDown
+                size={20}
+                className={`text-gray-600 transition-transform ${expandedSections.has('groups') ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {expandedSections.has('groups') && (
+              <div className="space-y-2 mt-4">
+                {disaster.reliefGroups.map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => setSelectedOrg(group)}
+                    className="w-full p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100 transition-all text-left group touch-manipulation"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 group-hover:text-blue-900 truncate">{group.name}</p>
+                        <p className="text-sm text-gray-600 mt-0.5 truncate">{group.organization}</p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {group.contributions.length} contribution{group.contributions.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <ChevronRight size={20} className="text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Needs - Collapsible */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
-              Current Needs
-            </h3>
+            <button
+              onClick={() => toggleSection('needs')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors touch-manipulation"
+            >
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+                <Package size={18} />
+                Current Needs
+              </h3>
+              <ChevronDown
+                size={20}
+                className={`text-gray-600 transition-transform ${expandedSections.has('needs') ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {expandedSections.has('needs') && (
 
             <div className="space-y-4">
               {/* Volunteers Card */}
@@ -184,6 +235,7 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>
