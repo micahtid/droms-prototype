@@ -1,0 +1,94 @@
+# Latest Updates Summary
+
+## Map View Enhancements
+- Filter dialog now supports multi-select for disaster types and severity levels
+- Filter dialog automatically closes when clicking anywhere on the map
+- Filter dialog width increased for better usability
+- Added severity filter alongside disaster type filter
+- Legend moved to bottom-left and made collapsible (collapsed by default)
+- Legend displays disaster types in Notion-style tags with glassmorphism effect
+- Removed FERPA toggle from legend
+
+## Filter & Tag Styling
+- Updated all filter tags to Notion-style design with colored backgrounds
+- Selected tags show disaster type/severity colors with 80% opacity backgrounds
+- Tag text uses white color with 70% opacity for better readability
+- Removed colored circle indicators, replaced with full tag highlighting
+- Clear Filters button styled with white background (previously red)
+
+## List View Improvements
+- Added search bar at the top for filtering disasters by type, location, or description
+- Added filter menu matching Map View functionality (types and severity)
+- Filter menu closes when clicking outside
+- Filters shared between Map View and List View for consistency
+
+## Polygon Updates
+- Updated disaster zone polygons to rectangular shapes with 90-degree angles only
+- Adjusted polygon coordinates to properly encompass all related disaster pin points
+- Tornado polygon: L-shaped rectangle covering all 4 sub-disasters
+- Flood polygon: L-shaped rectangle covering all 3 sub-disasters
+
+## Issue Details Reorganization
+- Removed "Reviewed" status badges throughout the application
+- Reorganized content layout for better information flow:
+  - Title positioned at top
+  - Parent disaster context badge with glassmorphism style
+  - Key info cards (Severity & Last Updated) in 2-column grid
+  - Removed icons from Severity and Last Updated cards
+- Added city and state to location display (e.g., "Lincoln, NE")
+- Updated "Part of" tag with glass/frosted style, visible blue text, and subtle border
+
+## Deployment Detail Updates
+- Groups Working section now collapsed by default (only Needs section expanded)
+- Updated Last Updated card layout with label and value in rows
+
+## Share Functionality
+- Removed share dialog modal
+- Share Disaster Info now directly copies information to clipboard
+- Shows "Copied to Clipboard!" confirmation with checkmark icon
+
+## Login Page Updates
+- Added email and password input fields (not required)
+- Email and password fields are optional for dummy login
+- Updated subtitle to title case: "Disaster Relief Operation Management System"
+- Removed shadow from login form card
+
+## Data & Color Improvements
+- Disaster type colors now use RGBA with 80% opacity for softer appearance
+- All tag styles consistent across filters, legend, and parent disaster badges
+- Parent disaster tag uses distinct glassmorphism style with blue theme
+
+---
+
+## Volunteer & Resource Deployment System (NEW)
+
+### Data Additions
+- Added Volunteer and ResourceInventory interfaces
+- Created "Lincoln Community Relief Network" with 12 volunteers and 10 resource items
+- Volunteers have tags, deployment status, certifications, and phone numbers
+
+### Volunteer Deployment
+- Replaced number inputs with "Send Volunteers" button
+- Opens sheet showing filtered volunteers by qualification
+- Shows name, tags, certifications, phone, and deploy button
+- Deployed volunteers grayed out with "Deployed" button
+- X button and post-deploy return to Volunteer Details
+
+### Resource Deployment
+- Replaced quantity inputs with "Send Resources" button
+- Opens sheet showing organization inventory
+- Select quantity and send from available stock
+- X button and post-send return to Resource Details
+
+### Issue Details Updates
+- Unified "Details" collapsible with Part of Event, Severity, Last Updated, Location
+- Each detail on separate row (no multi-column)
+- Location coordinates inline (e.g., "Lincoln, NE - 115.1N, 29.0W")
+- Removed MapPin icon
+- Description moved below title without heading
+- All collapsibles open by default
+
+### Collapsible Design
+- Unified card design with integrated headers
+- Gray header button, white content area with border separator
+- Groups Working collapsed by default, Current Needs open by default

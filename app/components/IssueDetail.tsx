@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Disaster, disasters } from '../data/disasters';
-import { ArrowLeft, MapPin, Users, AlertTriangle, ChevronDown, Clock, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Users, AlertTriangle, ChevronDown, Copy, Check } from 'lucide-react';
 import Breadcrumb from './Breadcrumb';
 import DeploymentDetail from './DeploymentDetail';
 
@@ -49,7 +49,7 @@ const getCityState = (coordinates: [number, number]): string => {
 
 export default function IssueDetail({ disaster, onBack, onBackToMap, onVolunteerContribution, onResourceContribution }: IssueDetailProps) {
   const [showDeployment, setShowDeployment] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['impact']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['impact', 'details']));
   const [copied, setCopied] = useState(false);
 
   // Find parent disaster if this is a sub-disaster
@@ -150,63 +150,79 @@ View more details: ${typeof window !== 'undefined' ? window.location.origin : ''
           {/* Title */}
           <div className="mb-4">
             <h2 className="text-2xl font-bold text-gray-900">{disaster.type}</h2>
+            <p className="text-base text-gray-700 leading-relaxed mt-2">{disaster.shortDescription}</p>
           </div>
 
-          {/* Parent Disaster Context */}
-          {parentDisaster && (
-            <div className="mb-4 inline-block">
-              <div
-                className="px-3 py-1.5 rounded-md text-sm font-semibold backdrop-blur-sm border"
-                style={{
-                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                  color: '#3b82f6',
-                  borderColor: 'rgba(59, 130, 246, 0.3)',
-                }}
-              >
-                Part of {parentDisaster.type}
+          {/* Details - Collapsible */}
+          <div className="mb-6 bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <button
+              onClick={() => toggleSection('details')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors touch-manipulation"
+            >
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+                <AlertTriangle size={18} />
+                Details
+              </h3>
+              <ChevronDown
+                size={20}
+                className={`text-gray-600 transition-transform ${expandedSections.has('details') ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {expandedSections.has('details') && (
+              <div className="p-4 bg-white border-t border-gray-200">
+                {/* Parent Disaster Context */}
+                {parentDisaster && (
+                  <div className="pb-4 mb-4 border-b border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Part of Event</p>
+                    <div
+                      className="inline-block px-3 py-1.5 rounded-md text-sm font-semibold backdrop-blur-sm border"
+                      style={{
+                        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                        color: '#3b82f6',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                      }}
+                    >
+                      {parentDisaster.type}
+                    </div>
+                  </div>
+                )}
+
+                {/* Severity */}
+                <div className="pb-4 mb-4 border-b border-gray-200">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Severity</p>
+                  <div className={`inline-block px-3 py-1.5 rounded-md border text-sm font-bold ${getSeverityColor(disaster.severity)}`}>
+                    {disaster.severity}
+                  </div>
+                </div>
+
+                {/* Last Updated */}
+                <div className="pb-4 mb-4 border-b border-gray-200">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Last Updated</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {new Date(disaster.lastUpdated).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+
+                {/* Location */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Location</p>
+                  <p className="text-base font-semibold text-gray-900">{getCityState(disaster.coordinates)} - {disaster.location}</p>
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Key Info Cards */}
-          <div className="mb-6 grid grid-cols-2 gap-3">
-            {/* Severity */}
-            <div className={`p-3 rounded-lg border ${getSeverityColor(disaster.severity)}`}>
-              <p className="text-xs font-medium uppercase tracking-wide mb-1">Severity</p>
-              <p className="text-lg font-bold">{disaster.severity}</p>
-            </div>
-
-            {/* Last Updated */}
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Last Updated</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {new Date(disaster.lastUpdated).toLocaleString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div className="mb-6">
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-              <MapPin size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-gray-700">Location</p>
-                <p className="text-base text-gray-900 mt-1">{getCityState(disaster.coordinates)}</p>
-                <p className="text-sm text-gray-600 mt-0.5">{disaster.location}</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Estimated Impact - Collapsible */}
-          <div className="mb-6">
+          <div className="mb-6 bg-white border border-gray-200 rounded-xl overflow-hidden">
             <button
               onClick={() => toggleSection('impact')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors touch-manipulation"
+              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors touch-manipulation"
             >
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
                 <Users size={18} />
@@ -219,7 +235,7 @@ View more details: ${typeof window !== 'undefined' ? window.location.origin : ''
             </button>
 
             {expandedSections.has('impact') && (
-              <div className="space-y-3 mt-3">
+              <div className="space-y-3 p-4 bg-white border-t border-gray-200">
                 {/* People Affected */}
                 <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
                   <Users size={20} className="text-gray-600 mt-0.5 flex-shrink-0" />
@@ -374,12 +390,6 @@ View more details: ${typeof window !== 'undefined' ? window.location.origin : ''
               )}
               </div>
             )}
-          </div>
-
-          {/* Description */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Description</h3>
-            <p className="text-base text-gray-700 leading-relaxed">{disaster.shortDescription}</p>
           </div>
 
           {/* Action Buttons */}

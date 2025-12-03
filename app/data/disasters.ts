@@ -2,6 +2,24 @@ export type DisasterSeverity = 'MINOR' | 'MODERATE' | 'SEVERE' | 'CRITICAL';
 export type ContributionStatus = 'Being Sent' | 'Sent' | 'Delivered' | 'Processing' | 'Arrived' | 'Retracted';
 export type ContributionType = 'Volunteers' | 'Resources' | 'Funding';
 
+export interface Volunteer {
+  id: string;
+  name: string;
+  tags: string[]; // e.g., ['Medical Staff', 'Search & Rescue', 'Logistics Support']
+  isDeployed: boolean;
+  deployedTo?: string; // Disaster ID if deployed
+  phone?: string;
+  certifications?: string[];
+}
+
+export interface ResourceInventory {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string; // e.g., 'units', 'pallets', 'cases'
+  category: string; // e.g., 'Medical', 'Shelter', 'Food & Water'
+}
+
 export interface Contribution {
   id: string;
   type: ContributionType;
@@ -18,6 +36,8 @@ export interface ReliefGroup {
   name: string;
   organization: string;
   contributions: Contribution[];
+  volunteers?: Volunteer[]; // Organization's available volunteers
+  resourceInventory?: ResourceInventory[]; // Organization's available resources
 }
 
 export interface ImpactBreakdown {
@@ -709,3 +729,184 @@ export const disasters: Disaster[] = [
     manuallyReviewed: false
   }
 ];
+
+// Our Organization - represents the user's organization with available volunteers and resources
+export const ourOrganization: ReliefGroup = {
+  id: 'our-org',
+  name: 'Lincoln Community Relief Network',
+  organization: 'Your Organization',
+  contributions: [],
+  volunteers: [
+    {
+      id: 'vol-1',
+      name: 'Dr. Sarah Chen',
+      tags: ['Medical Staff'],
+      isDeployed: false,
+      phone: '402-555-1001',
+      certifications: ['MD', 'Emergency Medicine', 'ACLS']
+    },
+    {
+      id: 'vol-2',
+      name: 'Marcus Johnson',
+      tags: ['Search & Rescue', 'Logistics Support'],
+      isDeployed: true,
+      deployedTo: 'tornado-1',
+      phone: '402-555-1002',
+      certifications: ['EMT-B', 'Swift Water Rescue']
+    },
+    {
+      id: 'vol-3',
+      name: 'Emily Rodriguez',
+      tags: ['Medical Staff', 'Logistics Support'],
+      isDeployed: false,
+      phone: '402-555-1003',
+      certifications: ['RN', 'Trauma Care']
+    },
+    {
+      id: 'vol-4',
+      name: 'James Mitchell',
+      tags: ['Search & Rescue'],
+      isDeployed: false,
+      phone: '402-555-1004',
+      certifications: ['Wilderness First Responder', 'Technical Rescue']
+    },
+    {
+      id: 'vol-5',
+      name: 'Lisa Thompson',
+      tags: ['Logistics Support'],
+      isDeployed: false,
+      phone: '402-555-1005',
+      certifications: ['Supply Chain Management', 'Warehouse Operations']
+    },
+    {
+      id: 'vol-6',
+      name: 'Dr. Robert Kim',
+      tags: ['Medical Staff'],
+      isDeployed: true,
+      deployedTo: 'tornado-3',
+      phone: '402-555-1006',
+      certifications: ['MD', 'Surgery', 'Disaster Medicine']
+    },
+    {
+      id: 'vol-7',
+      name: 'Amanda Foster',
+      tags: ['Search & Rescue', 'Medical Staff'],
+      isDeployed: false,
+      phone: '402-555-1007',
+      certifications: ['Paramedic', 'Rope Rescue', 'HAZMAT']
+    },
+    {
+      id: 'vol-8',
+      name: 'David Park',
+      tags: ['Logistics Support', 'Search & Rescue'],
+      isDeployed: false,
+      phone: '402-555-1008',
+      certifications: ['Project Management', 'Incident Command System']
+    },
+    {
+      id: 'vol-9',
+      name: 'Jennifer Lewis',
+      tags: ['Medical Staff'],
+      isDeployed: false,
+      phone: '402-555-1009',
+      certifications: ['Nurse Practitioner', 'Pediatric Care']
+    },
+    {
+      id: 'vol-10',
+      name: 'Carlos Ramirez',
+      tags: ['Search & Rescue'],
+      isDeployed: true,
+      deployedTo: 'flood-1',
+      phone: '402-555-1010',
+      certifications: ['Firefighter', 'Water Rescue', 'Confined Space']
+    },
+    {
+      id: 'vol-11',
+      name: 'Rachel Wong',
+      tags: ['Logistics Support', 'Medical Staff'],
+      isDeployed: false,
+      phone: '402-555-1011',
+      certifications: ['Healthcare Administration', 'Emergency Management']
+    },
+    {
+      id: 'vol-12',
+      name: 'Michael Brown',
+      tags: ['Search & Rescue', 'Logistics Support', 'Medical Staff'],
+      isDeployed: false,
+      phone: '402-555-1012',
+      certifications: ['EMT-P', 'Technical Rescue', 'Operations Management']
+    }
+  ],
+  resourceInventory: [
+    {
+      id: 'res-1',
+      name: 'Heavy-duty tents',
+      quantity: 45,
+      unit: 'units',
+      category: 'Shelter'
+    },
+    {
+      id: 'res-2',
+      name: 'Thermal blankets',
+      quantity: 200,
+      unit: 'units',
+      category: 'Shelter'
+    },
+    {
+      id: 'res-3',
+      name: 'First aid kits',
+      quantity: 50,
+      unit: 'kits',
+      category: 'Medical'
+    },
+    {
+      id: 'res-4',
+      name: 'Bottled water',
+      quantity: 2400,
+      unit: 'bottles',
+      category: 'Food & Water'
+    },
+    {
+      id: 'res-5',
+      name: 'MREs',
+      quantity: 1000,
+      unit: 'meals',
+      category: 'Food & Water'
+    },
+    {
+      id: 'res-6',
+      name: 'Portable generators',
+      quantity: 8,
+      unit: 'units',
+      category: 'Equipment'
+    },
+    {
+      id: 'res-7',
+      name: 'Water pumps',
+      quantity: 6,
+      unit: 'units',
+      category: 'Equipment'
+    },
+    {
+      id: 'res-8',
+      name: 'Sleeping bags',
+      quantity: 120,
+      unit: 'units',
+      category: 'Shelter'
+    },
+    {
+      id: 'res-9',
+      name: 'Sandbags',
+      quantity: 500,
+      unit: 'bags',
+      category: 'Equipment'
+    },
+    {
+      id: 'res-10',
+      name: 'Emergency lighting',
+      quantity: 35,
+      unit: 'units',
+      category: 'Equipment'
+    }
+  ]
+};

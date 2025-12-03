@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Disaster, ReliefGroup } from '../data/disasters';
+import { Disaster, ReliefGroup, Volunteer, ourOrganization } from '../data/disasters';
 import { ArrowLeft, Users, Package, Building2, ChevronRight, X, MapPin, Clock, CheckCircle, Truck, Phone, ChevronDown } from 'lucide-react';
 import Breadcrumb from './Breadcrumb';
 import OrganizationContributions from './OrganizationContributions';
@@ -14,7 +14,8 @@ interface DeploymentDetailProps {
   onResourceContribution: (disasterId: string, resourceIndex: number, resourceName: string, quantity: number, maxQuantity: number) => void;
 }
 
-type ModalType = 'volunteers' | 'resources' | 'track-volunteers' | 'track-resources' | null;
+type ModalType = 'volunteers' | 'resources' | 'track-volunteers' | 'track-resources' | 'select-volunteers' | 'select-resources' | null;
+type VolunteerCategory = 'Medical Staff' | 'Search & Rescue' | 'Logistics Support' | null;
 
 const getResourceDescription = (resourceName: string): string => {
   const descriptions: { [key: string]: string } = {
@@ -42,6 +43,9 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
   const [volunteerQuantities, setVolunteerQuantities] = useState<{ [key: string]: number }>({});
   const [resourceQuantities, setResourceQuantities] = useState<{ [key: string]: number }>({});
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['needs']));
+  const [selectedVolunteerCategory, setSelectedVolunteerCategory] = useState<VolunteerCategory>(null);
+  const [selectedResourceName, setSelectedResourceName] = useState<string | null>(null);
+  const [selectedResourceIndex, setSelectedResourceIndex] = useState<number | null>(null);
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => {
@@ -53,6 +57,27 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
       }
       return newSet;
     });
+  };
+
+  // Open volunteer selection modal for a specific category
+  const openVolunteerSelection = (category: VolunteerCategory) => {
+    setSelectedVolunteerCategory(category);
+    setActiveModal('select-volunteers');
+  };
+
+  // Open resource selection modal for a specific resource
+  const openResourceSelection = (resourceName: string, resourceIndex: number) => {
+    setSelectedResourceName(resourceName);
+    setSelectedResourceIndex(resourceIndex);
+    setActiveModal('select-resources');
+  };
+
+  // Get filtered volunteers by category
+  const getFilteredVolunteers = (category: VolunteerCategory): Volunteer[] => {
+    if (!category || !ourOrganization.volunteers) return [];
+    return ourOrganization.volunteers.filter(volunteer =>
+      volunteer.tags.includes(category)
+    );
   };
 
   // Handlers for sending contributions
@@ -127,10 +152,10 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
           </div>
 
           {/* Relief Groups Working - Collapsible */}
-          <div className="mb-8">
+          <div className="mb-8 bg-white border border-gray-200 rounded-xl overflow-hidden">
             <button
               onClick={() => toggleSection('groups')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors touch-manipulation"
+              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors touch-manipulation"
             >
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
                 <Building2 size={18} />
@@ -143,12 +168,12 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
             </button>
 
             {expandedSections.has('groups') && (
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2 p-4 bg-white border-t border-gray-200">
                 {disaster.reliefGroups.map((group) => (
                   <button
                     key={group.id}
                     onClick={() => setSelectedOrg(group)}
-                    className="w-full p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100 transition-all text-left group touch-manipulation"
+                    className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100 transition-all text-left group touch-manipulation"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -167,10 +192,10 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
           </div>
 
           {/* Needs - Collapsible */}
-          <div className="mb-6">
+          <div className="mb-6 bg-white border border-gray-200 rounded-xl overflow-hidden">
             <button
               onClick={() => toggleSection('needs')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors touch-manipulation"
+              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors touch-manipulation"
             >
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
                 <Package size={18} />
@@ -184,7 +209,7 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
 
             {expandedSections.has('needs') && (
 
-            <div className="space-y-4">
+            <div className="space-y-4 p-4 bg-white border-t border-gray-200">
               {/* Volunteers Card */}
               <div className="bg-white border border-gray-200 rounded-lg p-5">
                 <div className="mb-4">
@@ -288,24 +313,11 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
                     </div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Volunteers</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="15"
-                    placeholder="Enter quantity (max 15)"
-                    value={volunteerQuantities['medical'] || ''}
-                    onChange={(e) => setVolunteerQuantities({ ...volunteerQuantities, medical: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500"
-                  />
-                </div>
                 <button
-                  disabled={!volunteerQuantities['medical'] || volunteerQuantities['medical'] <= 0}
-                  onClick={() => handleSendVolunteers('Medical Staff', 15, 'medical')}
-                  className="w-full mt-3 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap overflow-hidden text-ellipsis"
+                  onClick={() => openVolunteerSelection('Medical Staff')}
+                  className="w-full mt-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation"
                 >
-                  Send {volunteerQuantities['medical'] > 0 ? `(${volunteerQuantities['medical']})` : ''}
+                  Send Volunteers
                 </button>
               </div>
 
@@ -339,24 +351,11 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
                     </div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Volunteers</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="25"
-                    placeholder="Enter quantity (max 25)"
-                    value={volunteerQuantities['rescue'] || ''}
-                    onChange={(e) => setVolunteerQuantities({ ...volunteerQuantities, rescue: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500"
-                  />
-                </div>
                 <button
-                  disabled={!volunteerQuantities['rescue'] || volunteerQuantities['rescue'] <= 0}
-                  onClick={() => handleSendVolunteers('Search & Rescue', 25, 'rescue')}
-                  className="w-full mt-3 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap overflow-hidden text-ellipsis"
+                  onClick={() => openVolunteerSelection('Search & Rescue')}
+                  className="w-full mt-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation"
                 >
-                  Send {volunteerQuantities['rescue'] > 0 ? `(${volunteerQuantities['rescue']})` : ''}
+                  Send Volunteers
                 </button>
               </div>
 
@@ -390,24 +389,11 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
                     </div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Volunteers</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    placeholder="Enter quantity (max 10)"
-                    value={volunteerQuantities['logistics'] || ''}
-                    onChange={(e) => setVolunteerQuantities({ ...volunteerQuantities, logistics: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500"
-                  />
-                </div>
                 <button
-                  disabled={!volunteerQuantities['logistics'] || volunteerQuantities['logistics'] <= 0}
-                  onClick={() => handleSendVolunteers('Logistics Support', 10, 'logistics')}
-                  className="w-full mt-3 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap overflow-hidden text-ellipsis"
+                  onClick={() => openVolunteerSelection('Logistics Support')}
+                  className="w-full mt-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation"
                 >
-                  Send {volunteerQuantities['logistics'] > 0 ? `(${volunteerQuantities['logistics']})` : ''}
+                  Send Volunteers
                 </button>
               </div>
             </div>
@@ -464,24 +450,11 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
                         </div>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Quantity to Send</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max={maxQuantity}
-                        placeholder={`Enter quantity (max ${maxQuantity})`}
-                        value={resourceQuantities[`resource-${index}`] || ''}
-                        onChange={(e) => setResourceQuantities({ ...resourceQuantities, [`resource-${index}`]: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500"
-                      />
-                    </div>
                     <button
-                      disabled={!resourceQuantities[`resource-${index}`] || resourceQuantities[`resource-${index}`] <= 0}
-                      onClick={() => handleSendResource(index, resourceName, maxQuantity, `resource-${index}`)}
-                      className="w-full mt-3 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation disabled:bg-gray-300 disabled:cursor-not-allowed whitespace-nowrap overflow-hidden text-ellipsis"
+                      onClick={() => openResourceSelection(resourceName, index)}
+                      className="w-full mt-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation"
                     >
-                      Mark as Sent {resourceQuantities[`resource-${index}`] > 0 ? `(${resourceQuantities[`resource-${index}`]} units)` : ''}
+                      Send Resources
                     </button>
                   </div>
                 );
@@ -635,6 +608,185 @@ export default function DeploymentDetail({ disaster, onBack, onBackToMap, onVolu
                 <div className="text-center py-12 text-gray-500">
                   No resource contributions yet
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Select Volunteers Modal */}
+      {activeModal === 'select-volunteers' && selectedVolunteerCategory && (
+        <div className="fixed inset-0 bg-black/50 z-[1000] flex flex-col justify-end max-w-[430px] mx-auto" onClick={() => setActiveModal(null)}>
+          <div
+            className="w-full bg-white rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col animate-slide-up safe-area-bottom"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex-shrink-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between rounded-t-3xl">
+              <h2 className="text-xl font-semibold text-gray-900">Select {selectedVolunteerCategory}</h2>
+              <button
+                onClick={() => setActiveModal('volunteers')}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+              >
+                <X size={20} className="text-gray-700" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-6 pb-20">
+              {getFilteredVolunteers(selectedVolunteerCategory).length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  No volunteers available with this qualification
+                </div>
+              ) : (
+                <>
+                  {getFilteredVolunteers(selectedVolunteerCategory).map(volunteer => (
+                    <div
+                      key={volunteer.id}
+                      className={`mb-4 p-4 rounded-xl border ${
+                        volunteer.isDeployed
+                          ? 'bg-gray-50 border-gray-300 opacity-60'
+                          : 'bg-white border-gray-200'
+                      }`}
+                    >
+                      <div className="mb-3">
+                        <h3 className="font-semibold text-gray-900">{volunteer.name}</h3>
+                      </div>
+
+                      {/* Tags */}
+                      <div className="mb-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Qualifications</p>
+                        <div className="flex flex-wrap gap-1">
+                          {volunteer.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-md border border-blue-200"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Certifications */}
+                      {volunteer.certifications && volunteer.certifications.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Certifications</p>
+                          <div className="flex flex-wrap gap-1">
+                            {volunteer.certifications.map((cert, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md border border-green-200"
+                              >
+                                {cert}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Phone */}
+                      {volunteer.phone && (
+                        <div className="mb-3 flex items-center gap-2">
+                          <Phone size={14} className="text-gray-500" />
+                          <p className="text-sm text-gray-700">{volunteer.phone}</p>
+                        </div>
+                      )}
+
+                      {/* Deploy Button */}
+                      <button
+                        disabled={volunteer.isDeployed}
+                        onClick={() => {
+                          // Here you would handle the deployment logic
+                          alert(`Deploying ${volunteer.name} to ${disaster.type}`);
+                          setActiveModal('volunteers');
+                        }}
+                        className={`w-full py-2.5 font-medium rounded-lg transition-colors touch-manipulation ${
+                          volunteer.isDeployed
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+                        }`}
+                      >
+                        {volunteer.isDeployed ? 'Deployed' : 'Deploy'}
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Select Resources Modal */}
+      {activeModal === 'select-resources' && selectedResourceName && selectedResourceIndex !== null && (
+        <div className="fixed inset-0 bg-black/50 z-[1000] flex flex-col justify-end max-w-[430px] mx-auto" onClick={() => setActiveModal(null)}>
+          <div
+            className="w-full bg-white rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col animate-slide-up safe-area-bottom"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex-shrink-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between rounded-t-3xl">
+              <h2 className="text-xl font-semibold text-gray-900">Send {selectedResourceName}</h2>
+              <button
+                onClick={() => setActiveModal('resources')}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+              >
+                <X size={20} className="text-gray-700" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 pt-6 pb-20">
+              {ourOrganization.resourceInventory?.filter(res =>
+                res.name.toLowerCase().includes(selectedResourceName.toLowerCase())
+              ).length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  No matching resources in inventory
+                </div>
+              ) : (
+                <>
+                  {ourOrganization.resourceInventory
+                    ?.filter(res => res.name.toLowerCase().includes(selectedResourceName.toLowerCase()))
+                    .map(resource => (
+                      <div key={resource.id} className="mb-4 p-4 bg-white border border-gray-200 rounded-xl">
+                        <div className="mb-3">
+                          <h3 className="font-semibold text-gray-900 mb-1">{resource.name}</h3>
+                          <p className="text-sm text-gray-600">Available: {resource.quantity} {resource.unit}</p>
+                          <p className="text-xs text-gray-500 mt-1">Category: {resource.category}</p>
+                        </div>
+
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Quantity to Send</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={resource.quantity}
+                            placeholder={`Enter quantity (max ${resource.quantity})`}
+                            value={resourceQuantities[resource.id] || ''}
+                            onChange={(e) => setResourceQuantities({ ...resourceQuantities, [resource.id]: parseInt(e.target.value) || 0 })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-500"
+                          />
+                        </div>
+
+                        <button
+                          disabled={!resourceQuantities[resource.id] || resourceQuantities[resource.id] <= 0 || resourceQuantities[resource.id] > resource.quantity}
+                          onClick={() => {
+                            const quantity = resourceQuantities[resource.id];
+                            if (quantity && quantity > 0) {
+                              // Parse the needed resource to get max quantity
+                              const neededResource = disaster.resourcesNeeded[selectedResourceIndex];
+                              const match = neededResource.match(/^(\d+)\s+(.+)$/);
+                              const maxQuantity = match ? parseInt(match[1]) : 100;
+
+                              onResourceContribution(disaster.id, selectedResourceIndex, selectedResourceName, quantity, maxQuantity);
+                              setResourceQuantities({ ...resourceQuantities, [resource.id]: 0 });
+                              setActiveModal('resources');
+                            }
+                          }}
+                          className="w-full mt-3 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                          Send {resourceQuantities[resource.id] > 0 ? `(${resourceQuantities[resource.id]} ${resource.unit})` : ''}
+                        </button>
+                      </div>
+                    ))}
+                </>
               )}
             </div>
           </div>
